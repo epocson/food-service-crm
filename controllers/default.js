@@ -1,3 +1,5 @@
+ //"my first atttempt at coding"//
+ exports.install = function() {
     ROUTE('+GET /*'                     );
     ROUTE('GET /login',      view_login);   
 }

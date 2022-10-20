@@ -1,3 +1,3 @@
-NEWSCHEMA('User', function(schema) {
+NEWSCHEMA('User', function(schema) {  //юзер юзер юзер//
 
 })
