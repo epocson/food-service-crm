@@ -4,7 +4,7 @@ NEWSCHEMA('User', function(schema) {
 	schema.define('id'        , 'Number'     	  	            );  
 	schema.define('first_name', 'string(100)', true);	
 	schema.define('last_name', 'string(100)', true);
-    schema.define('Login', 'string(50)')
+    schema.define('Login', 'string(50)');
 	schema.define('Password', 'string(50)');
 	schema.define('telegram_uid', 'string(100)');
 	schema.define('Email', 'string(50)');
@@ -18,7 +18,8 @@ NEWSCHEMA('User', function(schema) {
 	schema.setDefault(function(property) {    
 		if (property === 'status')      	   return 1;   	
 		if (property === 'created_at')         return new Date();   	
-		if (property === 'updated_at')         return new Date();   	
+		if (property === 'updated_at')         return new Date();   
+		if (property === 'age')	   			   return 
   	}); 
 	  var o = Object.assign({}, U.isEmpty($.query) ? $.options : $.query);									
 	  var sql = DB(); 
