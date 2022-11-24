@@ -1,8 +1,8 @@
 var Pr = MODULE('Promise');   
 
 NEWSCHEMA('User', function(schema) {
-	schema.define('id'        , 'Number'     	  	            );  
-	schema.define('first_name', 'string(100)', true);	
+	schema.define('id'        , 'Number'     	  	           );  
+	schema.define('first_name', 'string(100)', true, 'cu');	
 	schema.define('last_name', 'string(100)', true);
     schema.define('Login', 'string(50)');
 	schema.define('Password', 'string(50)');
@@ -11,7 +11,6 @@ NEWSCHEMA('User', function(schema) {
 	schema.define('Phone', 'string(20)');
 	schema.define('Created_at', 'Date');
 	schema.define('Updated_at', 'Date');
-    schema.define('age', Number >= 18, true);
 	schema.define('Role', 'Number');
 	schema.setResource('default');      
 
@@ -19,7 +18,6 @@ NEWSCHEMA('User', function(schema) {
 		if (property === 'status')      	   return 1;   	
 		if (property === 'created_at')         return new Date();   	
 		if (property === 'updated_at')         return new Date();   
-		if (property === 'age')	   			   return 
   	}); 
 	  var o = Object.assign({}, U.isEmpty($.query) ? $.options : $.query);									
 	  var sql = DB(); 
@@ -35,7 +33,6 @@ NEWSCHEMA('User', function(schema) {
 		  'phone',
 		  'created_at',
 		  'updated_at',
-		  'age',
 		  'role');
 
 		  	if (o.id) builder.in('id', o.id);   
@@ -55,9 +52,9 @@ NEWSCHEMA('User', function(schema) {
                 LOGGER('error', 'User/get', err);          
                 return $.success(false);	        
             }    
-            //if (!resp) $.success(false);
-            //return $.success(true, resp);
-            return $.callback(resp||null);
+            if (!resp) $.success(false);
+           		 return $.success(true, resp);  
+            	 return $.callback(resp||null);
 		}, 'user')	
 	});
 
@@ -148,38 +145,65 @@ NEWSCHEMA('User', function(schema) {
 	});
 
 	schema.addWorkflow('grid', function($) {
-		
+		var o = $.query||{};
+		o.page = o.page||1;
+        o.limit = o.limit||30;
+
+		var sql = DB(); 
+		sql.debug = true;         
+		sql.listing('user', 'user').make(function(builder) {                        
+            if (o.sort) builder.sort(o.sort, (o.order=='asc') ? false : true);
+                else builder.sort('created_at', true);
+            if (o.search) {
+                builder.scope(function() {                  
+                    builder.like('login', o.search, '*');         
+                    builder.or();
+                    builder.like('email', o.search, '*');                                 
+                });                 
+            };            
+            if (isNum(o.status)) {
+            	builder.where('status', o.status);                         
+            } else builder.where('status', '>', -1);                         
+            builder.page(o.page, o.limit);
+        }); 
+
+        sql.exec(function(err, resp) {
+			if (err) {
+				LOGGER('error', 'User/grid', err);
+				$.callback([]);
+			}
+			$.callback({'total': resp.count, 'rows': resp.items});
+		}, 'user');	
     });
 
 NEWSCHEMA('user/login', function(schema) {
-    schema.define('Login', 'string(50)');
-	schema.define('Password', 'string(50)'); 
+    schema.define('Login', 'string(50)', true);
+	schema.define('Password', 'string(50)',true); 
 	schema.define('autologin', 'boolean', false)
 
 	schema.addWorkflow('exec', async function($) {
 	    	try {
 				var model = schema.clean($.model);
-            var user = await Pr.get('User', model);	
+           		var user = await Pr.get('User', model);	
 
-            if (!user) {            	
-                $.success(false, RESOURCE('!user_pass'));                
-                return; 
-            }		
+				if (!user) {            	
+					$.success(false, RESOURCE('!user_pass'));                
+					return; 
+				}		
 
-            var opt = {};
-            opt.name = CONF.cookie;
-            opt.key = CONF.cookie_secret;
-            opt.id = user.id;
-            opt.expire = (model.autologin) ? '20 days' : '1 day';    
-            opt.data = user;  
-            MAIN.session.setcookie($, opt, $.done());            
-            AUDIT('users', $, 'login', user.id + ': ' + user.login);      
+				var opt = {};
+				opt.name = CONF.cookie;
+				opt.key = CONF.cookie_secret;
+				opt.id = user.id;
+				opt.expire = (model.autologin) ? '20 days' : '1 day';    
+				opt.data = user;  
+				MAIN.session.setcookie($, opt, $.done());            
+				AUDIT('users', $, 'login', user.id + ': ' + user.login);      
 
-                } catch (err) {
-		    LOGGER('error', 'Login', err);                 
+            } catch (err) {
+		    	LOGGER('error', 'Login', err);                 
 	            $.invalid('!auth');                    
-        	    return;
-				
- 		} 
+        	    return;				
+	 		} 
         })
 })
