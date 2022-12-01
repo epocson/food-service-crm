@@ -1,17 +1,19 @@
 var Pr = MODULE('Promise');   
 
 NEWSCHEMA('User', function(schema) {
-	schema.define('id'        , 'Number'     	  	           );  
+	schema.define('id'        , 'Number'     	  	           );
+	schema.define('status', 'Number', 'c');  
 	schema.define('first_name', 'string(100)', true, 'cu');	
-	schema.define('last_name', 'string(100)', true);
-    schema.define('Login', 'string(50)');
-	schema.define('Password', 'string(50)');
-	schema.define('telegram_uid', 'string(100)');
-	schema.define('Email', 'string(50)');
-	schema.define('Phone', 'string(20)');
-	schema.define('Created_at', 'Date');
-	schema.define('Updated_at', 'Date');
-	schema.define('Role', 'Number');
+	schema.define('last_name', 'string(100)', true, 'cu');
+    schema.define('Login', 'string(50)', 'c');
+	schema.define('Password', 'string(50)', 'c');
+	schema.define('telegram_uid', 'string(100)', 'cu');
+	schema.define('Email', 'string(50)', 'cu');
+	schema.define('Phone', 'string(20)', 'cu');
+	schema.define('Created_at', 'Date', 'c');
+	schema.define('Updated_at', 'Date', 'u');
+	schema.define('Role', 'Number', 'c');
+
 	schema.setResource('default');      
 
 	schema.setDefault(function(property) {    
